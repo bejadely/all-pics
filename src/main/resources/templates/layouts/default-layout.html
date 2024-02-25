@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+>
+<head>
+    <meta charset="UTF-8">
+    <!-- main config -->
+    <th:block th:replace="fragments/config :: config"></th:block>
+</head>
+<body>
+    <!--header fragment -->
+    <div>
+        <th:block th:replace="fragments/header :: headerFragment"></th:block>
+    </div>
+    <div class="pt-20"></div>
+    <div id="main-container" class="min-h-screen z-0">
+        <th:block layout:fragment="content"></th:block>
+    </div>
+</body>
+<!-- bottom config -->
+<th:block th:replace="fragments/bottom-config :: bottom-config"></th:block>
+<!-- custom script -->
+<script th:inline="javascript" type="text/javascript">
+    // 이벤트 설정
+    document.addEventListener("DOMContentLoaded", ()=>{
+        moveToLoginPage();
+        moveToLogoutPage();
+        sessionExpiredMessage([[${duplicateLogin}]]);
+    })
+
+    function moveToLoginPage(){
+        if(document.getElementById("login-btn") != null){
+            document.getElementById("login-btn").addEventListener("click", ()=>{
+                location.href = "/auth/login-form";
+            })
+        }
+    }
+
+    function moveToLogoutPage(){
+        if(document.getElementById("logout-btn") != null){
+            document.getElementById("logout-btn").addEventListener("click", ()=>{
+                location.href = "/auth/logout";
+            })
+        }
+    }
+
+    function sessionExpiredMessage(message){
+
+        if(message === true){
+
+            Swal.fire(
+                '로그인 세션 만료',
+                '다른 기기에서 로그인하여 <b style="color:coral;">로그아웃</b> 되었습니다.',
+                'warning'
+            );
+        }
+
+    }
+</script>
+</html>

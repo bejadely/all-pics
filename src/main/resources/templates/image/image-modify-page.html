@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default-layout}"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>이미지 수정 페이지</title>
+    <style>
+        .jqtree-element {
+            border: 1px solid #d1d5db;
+            padding: 8px;
+            border-radius: 0.375rem;
+            margin: 4px;
+            transition: border-color 0.3s ease-in-out;
+        }
+
+        .jqtree-element:hover {
+            cursor: pointer;
+            border-color: #4F46E5;
+        }
+
+        [aria-level="2"] {
+            padding-left: 20px;
+        }
+
+        [aria-level="3"] {
+            padding-left: 40px;
+        }
+
+        [aria-level="4"] {
+            padding-left: 60px;
+        }
+
+        [aria-level="5"] {
+            padding-left: 80px;
+        }
+
+        [aria-level="6"] {
+            padding-left: 100px;
+        }
+    </style>
+</head>
+<div layout:fragment="content">
+    <div class="bg-white">
+        <div class="pb-16 pt-6 sm:pb-24">
+
+            <div class="mx-auto mt-8 max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+                <div class="lg:grid lg:auto-rows-min lg:grid-cols-12 lg:gap-x-8">
+                    <div class="lg:col-span-5 lg:col-start-8">
+                        <div class="flex justify-between">
+                            <h1 class="text-xl font-medium text-gray-900">이미지 정보 수정하기</h1>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 lg:col-span-7 lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:mt-0">
+                        <h2 class="sr-only">Images</h2>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-3 lg:gap-8">
+
+                            <img id="preview"
+                                 th:src="|/load/${image.savePath}|"
+                                 alt="미리보기 이미지"
+                                 class="lg:col-span-2 lg:row-span-2 rounded-lg">
+                        </div>
+                    </div>
+
+                    <div class="mt-8 lg:col-span-5">
+                        <form id ="image-form" action="/image" method="post">
+                            <div id="hidden-input">
+                                <input type="hidden" name="memberId" th:value="${#authentication.name}">
+                            </div>
+
+                            <div class="flex flex-col gap-x-4">
+                                <label for="img-title" class="text-xl font-medium text-gray-900">제목</label><br>
+                                <input id="img-title" name="title" type="text" th:value="${image.title}" required
+                                       class="min-w-0 flex-auto rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                       placeholder="이미지 제목을 입력해주십시오.">
+                                <br>
+                            </div>
+
+                            <div class="flex flex-col gap-x-4">
+                                <label for="jqtree" class="text-xl font-medium text-gray-900">카테고리</label><br>
+                                <div id="jqtree" class="min-w-0 text-sm leading-6 text-gray-900 bg-white"
+                                     data-url="/category/node"></div>
+                            </div>
+
+                            <div class="flex flex-col gap-x-4">
+                                <label for="img-tag" class="text-xl font-medium text-gray-900">태그</label>
+                                <div class="prose prose-sm mt-2 mb-4 text-gray-500">
+                                    <p>태그는 5개까지만 설정하실 수 있습니다.</p>
+                                </div>
+                                <input id="img-tag" type="text" th:value="|${#strings.substring(tagList, 1, #strings.length(tagList) - 1)}|"
+                                       class="min-w-0 flex-auto rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                >
+                                <br>
+                                <input type="hidden" id="tag" name="tag" value="">
+
+                            </div>
+
+                            <button id="modify-btn" type="button"
+                                    class="mt-8 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                수정하기
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:inline="javascript" type="text/javascript">
+        window.onload = function (){
+            // 필요한 변수 선언
+            let tagArray = [];
+
+            document.getElementById("modify-btn").addEventListener('click', modifyImage);
+            document.addEventListener('keydown', function(event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                }
+            }, true);
+
+            /* 수정 기능 */
+            let tagifyList = null;
+
+            function modifyImage(){
+                // 필요한 값 추출
+                // title, tagNames, categoryNum, page, size
+                // 1. tagify 값
+                let tagNames = tagify.value.map(item => item.value);
+                console.log(tagNames);
+                // 2. categoryNum
+                console.log(categoryNum);
+                // 3. 제목
+                let title = document.getElementById("img-title").value;
+                console.log(title);
+                // 4. imageId
+                let imageNum = [[${image.imageNum}]];
+
+                let jsonObj = {
+                    "imageNum": imageNum,
+                    "tagNames": tagNames,
+                    "categoryNum": categoryNum,
+                    "title": title
+                };
+
+                // jsonObj를 json 객체로 만든 후 서버에 전송
+                fetch("/image", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(jsonObj)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+
+                    })
+                    .then(data => {
+                        // 서버에서 받은 데이터를 처리
+                        Swal.fire({
+                            icon: 'success',
+                            title: "수정이 완료되었습니다.",
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/image/' + [[${image.imageNum}]];
+                            }
+                        })
+                    })
+                    .catch(error => {
+                        console.error("Fetch error:", error);
+                    });
+
+            }
+
+            /* jqTree area */
+            let categoryNum = null;
+
+            // 트리 형성(on demand 방식)
+            let categoryTree = $('#jqtree');
+
+            // applyDynamicIndentation();
+
+            categoryTree.tree({
+                dragAndDrop: false
+            });
+
+
+            // 트리 요소 선택 시 발생하는 이벤트
+            categoryTree.on('tree.select', function (event) {
+                let selectedNode = event.node;
+                if (selectedNode) {
+                    // 우선 모든 요소 색상 초기화
+                    $('div.jqtree_common').css({
+                        'border-width': '1px',
+                        'border-style': 'solid',
+                        'border-color': '#d1d5db'
+                    });
+                    categoryNum = selectedNode.id;
+                    $('.jqtree_common')
+                    $('.jqtree-selected').children('div').css('border-color', '#4F46E5')
+                        .css('border-width', '2px');
+                    console.log(categoryNum);
+                } else {
+                    // deselected 된 경우
+                    $('div.jqtree_common').css({
+                        'border-width': '1px',
+                        'border-style': 'solid',
+                        'border-color': '#d1d5db'
+                    });
+                }
+            })
+
+            categoryTree.on('tree.deselect', function (event) {
+                categoryNum = 0;
+
+            });
+
+            categoryTree.on('tree.move', function (event) {
+                let movedNode = event.move_info.moved_node;
+                let targetNode = event.move_info.target_node;
+                let movedPosition = event.move_info.position;
+
+                // 새로운 부모 카테고리 ID 확인
+                let newParentCategoryId = targetNode ? targetNode.id : null;
+
+                // 서버에 전송할 데이터 준비
+                let requestData = {
+                    movedCategoryId: movedNode.id,
+                    targetCategoryId: targetNode.id,
+                    movedPosition: movedPosition
+                };
+
+                console.log(JSON.stringify(requestData));
+
+                // AJAX를 사용하여 데이터를 서버로 전송
+                $.ajax({
+                    type: 'PUT',
+                    url: '/admin/category',
+                    contentType: 'application/json',
+                    data: JSON.stringify(requestData),
+                    success: function (response) {
+                        // 성공 시 처리 (필요한 경우)
+                    },
+                    error: function (error) {
+                        // 오류 시 처리 (필요한 경우)
+                    }
+                });
+            });
+
+            categoryTree.on('tree.dnd', function (event) {
+                let targetNode = event.move_info.target_node;
+
+                // 모든 노드의 밑줄 스타일 제거
+                categoryTree.find('li').css('border-bottom', 'none');
+
+                // 드래그 중인 노드의 위치에 밑줄 스타일 추가
+                if (targetNode) {
+                    let targetElement = $(targetNode.element);
+                    targetElement.css('border-bottom', '2px solid #4F46E5'); // Indigo-500 색상
+                }
+            });
+
+            categoryTree.on('tree.dndout', function (event) {
+                // 드롭 이벤트가 종료될 때 밑줄 스타일 제거
+                categoryTree.find('li').css('border-bottom', 'none');
+            });
+
+            async function createNewCategory(event){
+
+                let categoryName = document.getElementById("category-name").value;
+
+                let data = {
+                    categoryName: categoryName
+                }
+
+                // ajax 통해서 새로운 category 생성
+                try{
+                    let response = await fetch("/admin/category",{
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(data)
+                    })
+
+                    // 재호출
+                    categoryTree.tree('reload');
+
+
+                    let result = await response;
+                    console.log(response);
+                } catch (error){
+                    console.log(error)
+                }
+            }
+
+            async function deleteCategory(event){
+
+                let data = {
+                    "categoryNum": categoryNum
+                }
+
+
+                console.log(categoryNum);
+                console.log(data);
+
+                // ajax 통해서 새로운 category 생성
+                try{
+                    let response = await fetch("/admin/category",{
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(data)
+                    })
+
+                    // 재호출
+                    categoryTree.tree('reload');
+
+                    let result = await response;
+                    console.log(result.text());
+                } catch (error){
+                    console.log(error)
+                }
+            }
+
+            /* jq tree area end */
+
+            /* tagify area */
+            // tag 리스트 가져오기
+            let tagInput = document.getElementById('img-tag');
+
+            // 화이트리스트 (넣어놓으면 드롭다운에 자동으로 나옴)
+            let whitelist = []; // 여기에 페이지 로드 시 넣을 예정
+
+            // tagify 인풋 태그 이니셜라이즈
+            let tagify = new Tagify(tagInput, {
+                placeholder: "태그를 입력해 주십시오",
+                maxTags: 5,
+                delimiters: ".|,| ",
+                pattern: /^[a-zA-Z가-힣]{2,10}$/
+            });
+
+            tagify.on('add', (e) => {
+                console.log(tagify.value);
+                let tagString = "";
+                tagify.value.forEach(tag =>{
+                    console.log(tag.value);
+                    tagString = tagString + "," + tag.value;
+                })
+                // 맨 앞자리 자르는 로직
+                tagString = tagString.substring(1);
+                console.log(tagString);
+                let tagInput = document.getElementById("tag");
+                tagInput.value = tagString;
+                console.log(document.getElementById("tag"));
+            })
+
+        }
+        // 이미지 미리보기
+        function previewImage() {
+            let input = document.getElementById("img-file");
+            let preview = document.getElementById('preview');
+            let noImageDiv = document.getElementById('no-image-div');
+
+            if (input.files && input.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    noImageDiv.classList.add('hidden');
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.src = "";
+                noImageDiv.classList.remove('hidden');
+                preview.classList.add('hidden');
+            }
+        }
+
+        // 함수 실행 치수 세기 위한 변수 설정
+        let eventNum = 1;
+
+        // 1차 카테고리 선택 시 2차 카테고리 보이게 구현
+        function ajaxLoadSecondCategories(event){
+
+            // 1차 select option 선택 시 해당 옵션에 해당하는 2차 카테고리 불러옴
+            let selectElement = document.getElementById(eventNum + "th-category");
+
+            let selectedValue = selectElement.options[selectElement.selectedIndex].value;
+
+            // ajax 통신 실행
+            let xhr = new XMLHttpRequest();
+
+            xhr.open('GET', '/category/second-category/' + selectedValue, true);
+            xhr.responseType = 'json';
+            xhr.send();
+
+            xhr.onload = ()=>{
+
+                if(xhr.status === 200){
+                    console.log(xhr.response);
+                    let secondCategoryList = xhr.response;
+
+                    // 1. 새로운 요소 추가
+                    // 번호 생성
+                    if(secondCategoryList[0] == null){
+                        let lastCategory = document.getElementById(eventNum + "th-category");
+                        lastCategory.name = "categoryNum";
+                    } else {
+                        let orderNumber = secondCategoryList[0].categoryOrder;
+                        // 메인 div 요소 생성
+                        let mainDiv = document.createElement("div");
+                        mainDiv.className = "flex flex-col max-w-2xl mx-auto";
+
+                        // 레이블 생성
+                        let label = document.createElement("label");
+                        label.htmlFor = orderNumber + "th-category";
+                        label.className = "text-xl font-medium text-gray-900";
+                        label.textContent = orderNumber + "차 카테고리";
+                        mainDiv.appendChild(label);
+
+                        // 셀렉트 박스 요소 생성
+                        let select = document.createElement("select");
+                        select.id = orderNumber + "th-category";
+                        select.className = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+
+                        // 기본 옵션 생성
+                        let defaultOption = document.createElement("option");
+                        defaultOption.selected = true;
+                        defaultOption.textContent = orderNumber + "차 카테고리";
+                        select.appendChild(defaultOption);
+
+                        secondCategoryList.forEach(category => {
+                            // 가져온 카테고리 값을 바탕으로 새로운 Element 만들어서 select에 추가 및 이벤트 리스너 생성
+
+                            // 가져온 카테고리 정보를 바탕으로 하위 옵션 생성
+                            let childOption = document.createElement("option");
+                            childOption.value = category.categoryNum;
+                            childOption.textContent = category.categoryName;
+                            select.appendChild(childOption);
+
+                        })
+
+                        // 셀렉트 박스를 메인 div에 추가
+                        mainDiv.appendChild(select);
+
+                        // 메인 div를 id가 "select-area"인 div에 추가
+                        document.getElementById("select-area").appendChild(mainDiv);
+
+                        // 차수 +1
+                        eventNum++;
+
+                        // 새로 생성한 하위 카테고리에 새로운 이벤트 리스너 달기
+                        document.getElementById(eventNum + "th-category").addEventListener("change", ajaxLoadSecondCategories);
+                    }
+
+                } else {
+                    console.log(xhr.response);
+                }
+            }
+        }
+
+    </script>
+</div>
+</html>

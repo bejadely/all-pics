@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <th:block th:fragment="config">
+        <!-- Tailwind CSS CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- jqTree -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="/js/tree.jquery.js"></script>
+        <link rel="/css/stylesheet" href="jqtree.css">
+
+        <!-- flowbite -->
+        <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.4/dist/flowbite.min.css" />
+        <script src="https://unpkg.com/flowbite@1.4.0/dist/flowbite.js"></script>
+        <!-- css config -->
+        <link rel="stylesheet" th:href="@{/css/style.css}" type="text/css">
+
+        <!-- js config -->
+        <script th:src="@{/js/main.js}"></script>
+
+        <!-- sweetalert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.css">
+
+        <!-- tagify -->
+        <link href="/css/tagify.css" rel="stylesheet">
+        <script src="/js/tagify.js"></script>
+
+    </th:block>
+
+</html>

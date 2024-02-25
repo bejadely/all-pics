@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+    /*text-align: center;*/
+    font-family: "Noto Sans Korean";
+}
+
+body {
+    box-sizing: border-box;
+    margin: 0 0;
+}
+
+.main-container-direction-col{
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 20px);
+}

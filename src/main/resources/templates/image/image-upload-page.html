@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>이미지 업로드 페이지</title>
+</head>
+<div layout:fragment="content">
+    <div class="bg-white">
+        <div class="pb-16 pt-6 sm:pb-24">
+
+            <div class="mx-auto mt-8 max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+                <div class="lg:grid lg:auto-rows-min lg:grid-cols-12 lg:gap-x-8">
+                    <div class="lg:col-span-5 lg:col-start-8">
+                        <div class="flex justify-between">
+                            <h1 class="text-xl font-medium text-gray-900">이미지 업로드</h1>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 lg:col-span-7 lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:mt-0">
+                        <h2 class="sr-only">Images</h2>
+
+
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-3 lg:gap-8">
+
+                            <div id="no-image-div" class="lg:col-span-2 lg:row-span-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
+                                <div class="text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    <div class="mt-4 flex text-sm leading-6 text-gray-600">
+                                        <label for="no-image" class="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500">
+                                            <input id="no-image" name="no-image" type="file" class="sr-only">
+                                        </label>
+                                        <p class="pl-1">이미지를 업로드 해주세요</p>
+                                    </div>
+                                    <p class="text-xs leading-5 text-gray-600">PNG, JPG, JPEG 최대 500MB</p>
+                                </div>
+                            </div>
+
+                            <img id="preview"
+                                 src=""
+                                 alt="미리보기 이미지"
+                                 class="hidden lg:col-span-2 lg:row-span-2 rounded-lg">
+                        </div>
+                    </div>
+
+                    <div class="mt-8 lg:col-span-5">
+                        <form id ="image-form" action="/image" method="post" enctype="multipart/form-data">
+                            <div id="hidden-input">
+                                <input type="hidden" name="memberId" th:value="${#authentication.name}">
+                            </div>
+
+                            <div class="flex flex-col gap-x-4">
+                                <label for="img-title" class="text-xl font-medium text-gray-900">제목</label><br>
+                                <input id="img-title" name="title" type="text" required
+                                       class="min-w-0 flex-auto rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                       placeholder="이미지 제목을 입력해주십시오.">
+                                <br>
+                            </div>
+
+                            <div class="flex flex-col gap-x-4">
+                                <label for="img-file" class="text-xl font-medium text-gray-900">파일</label><br>
+                                <input id="img-file" name="file" type="file" required accept="image/jpeg, image/png"
+                                       class="min-w-0 flex-auto rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <br>
+                            </div>
+
+                            <!-- 1차 카테고리 -->
+                            <div id="select-area">
+                                <div class="flex flex-col max-w-2xl mx-auto">
+                                    <label for="1th-category" class="text-xl font-medium text-gray-900">1차
+                                        카테고리</label><br>
+                                    <select id="1th-category"
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                        <option selected>1차 카테고리</option>
+                                        <th:block th:each="f : ${firstCategories}">
+                                            <option th:value="${f.categoryNum}">[[${f.categoryName}]]</option>
+                                        </th:block>
+                                    </select>
+                                    <br>
+                                </div>
+                            </div>
+                            <!-- 여기 밑에 계속 붙어야함 -->
+                            <!-- 2차 카테고리 -->
+                            <!-- 동적으로 처리되게 만들 예정 -->
+
+                            <div class="flex flex-col gap-x-4">
+                                <label for="img-tag" class="text-xl font-medium text-gray-900">태그</label>
+                                <div class="prose prose-sm mt-2 mb-4 text-gray-500">
+                                    <p>태그는 5개까지만 설정하실 수 있습니다.</p>
+                                </div>
+                                <input id="img-tag" type="text"
+                                       class="min-w-0 flex-auto rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                       >
+                                <br>
+                                <input type="hidden" id="tag" name="tag" value="">
+                                <!-- jerry : subscribe 인풋 옆에 있는 태그-->
+                                <!--                <button type="submit" class="flex-none rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Subscribe</button>-->
+                            </div>
+
+                            <button id="upload-btn" type="submit"
+                                    class="mt-8 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                등록하기
+                            </button>
+                        </form>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:inline="javascript" type="text/javascript">
+        window.onload = function (){
+            // 필요한 변수 선언
+            let tagArray = [];
+
+            document.getElementById("1th-category").addEventListener("change", ajaxLoadSecondCategories);
+            // document.getElementById("upload-btn").addEventListener("click", ajaxUploadImage);
+            document.getElementById("img-file").addEventListener("change", previewImage)
+            document.addEventListener('keydown', function(event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                }
+            }, true);
+
+            /* tagify area */
+            // tag 리스트 가져오기
+            let tagInput = document.getElementById('img-tag');
+
+            // 화이트리스트 (넣어놓으면 드롭다운에 자동으로 나옴)
+            let whitelist = []; // 여기에 페이지 로드 시 넣을 예정
+
+            // tagify 인풋 태그 이니셜라이즈
+            let tagify = new Tagify(tagInput, {
+                placeholder: "태그를 입력해 주십시오",
+                maxTags: 5,
+                delimiters: ".|,| ",
+                pattern: /^[a-zA-Z가-힣]{2,10}$/
+            });
+
+            tagify.on('add', (e) => {
+                console.log(tagify.value);
+                let tagString = "";
+                tagify.value.forEach(tag =>{
+                    console.log(tag.value);
+                    tagString = tagString + "," + tag.value;
+                })
+                // 맨 앞자리 자르는 로직
+                tagString = tagString.substring(1);
+                console.log(tagString);
+                let tagInput = document.getElementById("tag");
+                tagInput.value = tagString;
+                console.log(document.getElementById("tag"));
+            })
+
+        }
+        // 이미지 미리보기
+        function previewImage() {
+            let input = document.getElementById("img-file");
+            let preview = document.getElementById('preview');
+            let noImageDiv = document.getElementById('no-image-div');
+
+            if (input.files && input.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    noImageDiv.classList.add('hidden');
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.src = "";
+                noImageDiv.classList.remove('hidden');
+                preview.classList.add('hidden');
+            }
+        }
+
+        // 함수 실행 치수 세기 위한 변수 설정
+        let eventNum = 1;
+
+        // 1차 카테고리 선택 시 2차 카테고리 보이게 구현
+        function ajaxLoadSecondCategories(event){
+
+            // 1차 select option 선택 시 해당 옵션에 해당하는 2차 카테고리 불러옴
+            let selectElement = document.getElementById(eventNum + "th-category");
+
+            let selectedValue = selectElement.options[selectElement.selectedIndex].value;
+
+            // ajax 통신 실행
+            let xhr = new XMLHttpRequest();
+
+            xhr.open('GET', '/category/second-category/' + selectedValue, true);
+            xhr.responseType = 'json';
+            xhr.send();
+
+            xhr.onload = ()=>{
+
+                if(xhr.status === 200){
+                    console.log(xhr.response);
+                    let secondCategoryList = xhr.response;
+
+                    // 1. 새로운 요소 추가
+                    // 번호 생성
+                    if(secondCategoryList[0] == null){
+                        let lastCategory = document.getElementById(eventNum + "th-category");
+                        lastCategory.name = "categoryNum";
+                    } else {
+                        let orderNumber = secondCategoryList[0].categoryOrder;
+                        // 메인 div 요소 생성
+                        let mainDiv = document.createElement("div");
+                        mainDiv.className = "flex flex-col max-w-2xl mx-auto";
+
+                        // 레이블 생성
+                        let label = document.createElement("label");
+                        label.htmlFor = orderNumber + "th-category";
+                        label.className = "text-xl font-medium text-gray-900";
+                        label.textContent = orderNumber + "차 카테고리";
+                        mainDiv.appendChild(label);
+
+                        // 셀렉트 박스 요소 생성
+                        let select = document.createElement("select");
+                        select.id = orderNumber + "th-category";
+                        select.className = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+
+                        // 기본 옵션 생성
+                        let defaultOption = document.createElement("option");
+                        defaultOption.selected = true;
+                        defaultOption.textContent = orderNumber + "차 카테고리";
+                        select.appendChild(defaultOption);
+
+                        secondCategoryList.forEach(category => {
+                            // 가져온 카테고리 값을 바탕으로 새로운 Element 만들어서 select에 추가 및 이벤트 리스너 생성
+
+                            // 가져온 카테고리 정보를 바탕으로 하위 옵션 생성
+                            let childOption = document.createElement("option");
+                            childOption.value = category.categoryNum;
+                            childOption.textContent = category.categoryName;
+                            select.appendChild(childOption);
+
+                        })
+
+                        // 셀렉트 박스를 메인 div에 추가
+                        mainDiv.appendChild(select);
+
+                        // 메인 div를 id가 "select-area"인 div에 추가
+                        document.getElementById("select-area").appendChild(mainDiv);
+
+                        // 차수 +1
+                        eventNum++;
+
+                        // 새로 생성한 하위 카테고리에 새로운 이벤트 리스너 달기
+                        document.getElementById(eventNum + "th-category").addEventListener("change", ajaxLoadSecondCategories);
+                    }
+
+                } else {
+                    console.log(xhr.response);
+                }
+            }
+        }
+
+    </script>
+</div>
+</html>

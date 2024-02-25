@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default-layout}"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>이미지 상세조회</title>
+</head>
+<div layout:fragment="content">
+    <div class="bg-white">
+        <div class="pb-16 pt-6 sm:pb-24">
+            <nav aria-label="Breadcrumb" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <ol role="list" class="flex items-center space-x-4">
+                    <th:block th:each="c, iterStat : ${categoryList}">
+                        <li>
+                            <div class="flex items-center">
+                                <!-- category 검색 -->
+                                <a href="#" class="mr-4 text-sm font-medium text-gray-900" th:text="${c.categoryName}"></a>
+
+                                <th:if test="${iterStat.last == true}">
+                                </th:if>
+                                <th:if test="${iterStat.last == true}">
+                                    <svg viewBox="0 0 6 20" aria-hidden="true" class="h-5 w-auto text-gray-300">
+                                        <path d="M4.878 4.34H3.551L.27 16.532h1.327l3.281-12.19z" fill="currentColor" />
+                                    </svg>
+                                </th:if>
+                            </div>
+                        </li>
+                    </th:block>
+                </ol>
+            </nav>
+            <div class="mx-auto mt-8 max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+                <div class="lg:grid lg:auto-rows-min lg:grid-cols-12 lg:gap-x-8">
+                    <div class="lg:col-span-5 lg:col-start-8">
+                        <div class="flex justify-center">
+                            <h1 class="text-xl font-medium text-gray-900">[[${image.title}]]</h1>
+                        </div>
+                        <div class="mt-4">
+                        </div>
+                    </div>
+
+                    <div class="mt-8 lg:col-span-7 lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:mt-0">
+                        <h2 class="sr-only">Images</h2>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-3 lg:gap-8">
+                            <img th:src="|/load/${image.savePath}|" alt="업로드 이미지" class="lg:col-span-2 lg:row-span-2 rounded-lg">
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5">
+                        <form id="delete-form" action="/image" th:method="delete">
+                            <input type="hidden" name="imageNum" th:value="${image.imageNum}">
+                            <div class="border-t border-gray-200 pt-4">
+                                <h2 class="text-center text-sm font-medium text-gray-900">작성자 : [[${image.memberId}]]</h2>
+                            </div>
+
+                            <div class="pt-4">
+                                <h2 class="text-center text-sm font-medium text-gray-900">작성일 : [[${#strings.substring(image.createdDate,0,10)}]]</h2>
+                            </div>
+
+                            <div>
+                                <div class="flex flex-row justify-center mt-5">
+                                    <th:block th:each="t : ${tagSumList}">
+                                        <button type="button" class="mx-1 items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"><a href="#" th:text="|${t.tagName}|"></a></button>
+                                    </th:block>
+                                </div>
+                            </div>
+
+                            <button id="modify-btn" type="button" class="mt-8 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">수정하기</button>
+                            <th:block th:if="${image.memberId == #authentication.name or #authorization.expression('hasRole(''ROLE_A2'')')}">
+                                <button id="img-delete-btn" type="submit" class="mt-8 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">삭제하기</button>
+                            </th:block>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:inline="javascript" type="text/javascript">
+        /*<![CDATA[*/
+        window.onload = function (){
+            document.getElementById("modify-btn").addEventListener("click", moveToModifyImagePage);
+            document.getElementById("img-delete-btn").addEventListener("click", removeCheck)
+        }
+
+        function moveToModifyImagePage(e){
+            /*[# th:if="${#authorization.expression('isAuthenticated()')}"]*/
+            // 이미 로그인한 사용자인 경우
+            let imageNum = [[${image.imageNum}]];
+            location.href = "/image/modify/" + imageNum;
+            /*[/]*/
+            /*[# th:unless="${#authorization.expression('isAuthenticated()')}"]*/
+            // 로그인하지 않은 사용자인 경우
+            Swal.fire({
+                icon: 'warning',
+                title: `로그인이 필요한 서비스입니다.\n로그인 화면으로 이동합니다.`,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    location.href = "/auth/login-form";
+                }
+            })
+            /*[/]*/
+        }
+
+        /*]]>*/
+
+        function removeCheck(e){
+            e.preventDefault();
+            Swal.fire({
+                title: '정말 삭제하시겠습니까?',
+                icon: 'warning',
+                html: `<div style="white-space: pre-line;">삭제한 이미지는 다시 복구할 수 없습니다.
+                그래도 삭제하시겠습니까?</div>`,
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '네',
+                cancelButtonText: '아니오',
+                reverseButtons: true,
+
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("delete-form").submit();
+                }
+            })
+
+        }
+
+    </script>
+</html>

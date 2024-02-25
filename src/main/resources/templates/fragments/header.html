@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <th:block th:fragment="headerFragment">
+        <link rel="stylesheet" href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" />
+            <header>
+                <nav class="bg-white h-20 w-full p-4 shadow-sm drop-shadow-xl mt-0 fixed z-50">
+                    <div class="container mx-auto flex justify-between items-center">
+                        <!-- 로고 왼쪽에 배치 -->
+                        <div class="pl-6 text-3xl text-indigo-500">
+                            <a href="/">AllPics</a>
+                        </div>
+
+
+
+                        <!-- 로그인 버튼 및 사용자 정보 오른쪽에 배치 -->
+                        <div class="flex items-center">
+                            <!-- ROLE_A2 권한을 가진 사용자를 위한 추가 링크 -->
+                            <th:block sec:authorize="hasRole('ROLE_A2')">
+                                <!-- 회원 관리 페이지 링크 -->
+                                <a href="/admin/member"
+                                   class="font-sans text-xs font-bold uppercase mx-4 text-indigo-500 hover:underline">
+                                    회원 관리
+                                </a>
+
+                                <!-- 카테고리 관리 페이지 링크 -->
+                                <a href="/admin/category"
+                                   class="font-sans text-xs font-bold uppercase mx-4 text-indigo-500 hover:underline">
+                                    카테고리 관리
+                                </a>
+                            </th:block>
+
+                            <!-- 로그인 버튼 -->
+                            <th:block sec:authorize="!isAuthenticated()">
+                                <button id="login-btn"
+                                        class="middle none center mr-4 rounded-lg bg-blue-500 py-3 px-6
+                                               font-sans text-xs font-bold uppercase text-white shadow-md shadow-blue-500/20
+                                               transition-all hover:shadow-lg hover:shadow-blue-500/40 focus:opacity-[0.85]
+                                               focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none
+                                               disabled:opacity-50 disabled:shadow-none"
+                                        data-ripple-light="true">
+                                    로그인
+                                </button>
+                            </th:block>
+                            <!-- 로그아웃 버튼 -->
+                            <th:block sec:authorize="isAuthenticated()">
+                                <p class="font-sans text-xs font-bold uppercase mx-8">[[${#authentication.name}]] 님</p>
+                                <button id="logout-btn"
+                                        class="middle none center mr-4 rounded-lg bg-blue-500 py-3 px-6
+                                               font-sans text-xs font-bold uppercase text-white shadow-md shadow-blue-500/20
+                                               transition-all hover:shadow-lg hover:shadow-blue-500/40 focus:opacity-[0.85]
+                                               focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none
+                                               disabled:opacity-50 disabled:shadow-none"
+                                        data-ripple-light="true">
+                                    로그아웃
+                                </button>
+                            </th:block>
+                        </div>
+
+
+                    </div>
+                </nav>
+            </header>
+    </th:block>
+</html>

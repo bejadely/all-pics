@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인</title>
+</head>
+<div layout:fragment="content">
+    <div class="flex min-h-screen items-center justify-center p-12">
+        <form id="login-form" method="post" action="/auth/login">
+            <div class="max-w-sm rounded-3xl bg-gradient-to-b from-sky-300 to-purple-500 p-px ">
+                <div class="rounded-[calc(1.5rem-1px)] bg-white px-10 p-12 ">
+                    <div>
+                        <h1 class="text-center text-xl font-semibold text-gray-800 ">로그인</h1>
+<!--                        <p class="text-sm tracking-wide text-gray-600 ">계정이 없으신가요? <a href=""-->
+<!--                                                                                                        class="text-blue-600 transition duration-200 hover:underline ">회원가입</a>-->
+<!--                            바로가기</p>-->
+                    </div>
+
+                    <div class="mt-8 space-y-8">
+                        <div class="space-y-6">
+                            <input class="w-full bg-transparent text-gray-600 rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-600 invalid:border-red-500"
+                                   placeholder="아이디" type="text" name="id" id="id"/>
+
+                            <input class="w-full bg-transparent text-gray-600 rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-600 invalid:border-red-500"
+                                   placeholder="비밀번호" type="password" name="pwd" id="pwd"/>
+                        </div>
+                        <div id="error-message-area" class="hidden text-sm tracking-wide text-red-500">
+
+                        </div>
+
+                        <button id="submit-btn"
+                                type="button"
+                                class="h-9 px-3 w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 focus:bg-blue-700 transition duration-500 rounded-md text-white">
+                            로그인
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script th:inline="javascript" type="text/javascript">
+        window.onload = function (){
+            document.getElementById("submit-btn").addEventListener("click", ajaxCheckSession);
+            printLoginErrorMessage([[${loginException}]]);
+        }
+
+        function ajaxCheckSession(event){
+            let memberId = document.getElementById("id").value;
+
+            let xhr = new XMLHttpRequest();
+
+            xhr.open('GET', '/auth/session?memberId=' + memberId, true);
+
+            xhr.send();
+            xhr.onload = ()=>{
+
+                if(xhr.status === 200){
+                    if(xhr.response === 'true'){
+
+                        Swal.fire({
+                            title: '다른 기기에서 로그인중입니다',
+                            icon: 'warning',
+                            text: '다른 기기에서 로그인중입니다.\n 강제 로그아웃하고, 현재 기기에서 로그인하시겠습니까?',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: '네',
+                            cancelButtonText: '아니오',
+                            reverseButtons: true,
+
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById("login-form").submit();
+                            }
+                        })
+                    } else {
+                        document.getElementById("login-form").submit();
+                    }
+                } else {
+                    console.log(xhr.response);
+                }
+            }
+        }
+
+        function printLoginErrorMessage(errorMessage){
+
+            if(errorMessage != null){
+
+                switch(errorMessage){
+                    case "NO_SUCH_ID":
+                        errorMessage = `존재하지 않는 아이디입니다.`;
+                        break;
+                    case "MISMATCH_ACCOUNT":
+                        errorMessage = `아이디 또는 비밀번호를 잘못 입력하셨습니다.`;
+                        break;
+                    case "UNEXPECTED_ERROR":
+                        errorMessage = `예기치 못한 오류가 발생했습니다.\n 다시 시도해 주십시오.`;
+                        break;
+                }
+
+                let pTag = document.createElement("p");
+                let area = document.getElementById("error-message-area");
+
+                pTag.textContent = errorMessage;
+                area.classList.remove('hidden');
+                area.appendChild(pTag);
+                document.getElementById("id").focus();
+            }
+        }
+
+    </script>
+</div>
+</html>

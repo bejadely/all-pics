@@ -1,0 +1,295 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>카테고리 관리 페이지</title>
+    <style>
+        .jqtree-element {
+            border: 1px solid #2d3748;
+            padding: 8px;
+            border-radius: 0.375rem;
+            margin: 4px;
+            transition: border-color 0.3s ease-in-out;
+        }
+
+        .jqtree-element:hover {
+            cursor: pointer;
+            border-color: #4F46E5;
+        }
+
+        [aria-level="2"] {
+            padding-left: 20px;
+        }
+
+        [aria-level="3"] {
+            padding-left: 40px;
+        }
+
+        [aria-level="4"] {
+            padding-left: 60px;
+        }
+
+        [aria-level="5"] {
+            padding-left: 80px;
+        }
+
+        [aria-level="6"] {
+            padding-left: 100px;
+        }
+
+        [aria-level="7"] {
+            padding-left: 120px;
+        }
+
+        [aria-level="8"] {
+            padding-left: 140px;
+        }
+
+        [aria-level="9"] {
+            padding-left: 160px;
+        }
+
+        [aria-level="10"] {
+            padding-left: 180px;
+        }
+
+        [aria-level="11"] {
+             padding-left: 200px;
+         }
+
+        [aria-level="12"] {
+            padding-left: 220px;
+        }
+
+        [aria-level="13"] {
+            padding-left: 240px;
+        }
+
+        [aria-level="14"] {
+            padding-left: 260px;
+        }
+
+        [aria-level="15"] {
+            padding-left: 280px;
+        }
+
+    </style>
+</head>
+<div layout:fragment="content">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8 mt-16">
+        <p>카테고리 관리</p>
+        <div class="border-b border-gray-200 pb-5 sm:flex sm:items-center sm:justify-between">
+            <h3 class="text-base font-semibold leading-6 text-gray-900">카테고리 추가 / 삭제</h3>
+            <div class="mt-3 flex sm:ml-4 sm:mt-0">
+                <input id="category-name" name="categoryName" type="text" required class="min-w-0 flex-auto rounded-md border-0 mx-2 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder="추가할 카테고리명을 입력해주세요.">
+                <button id="add-btn" type="button" class="mr-2 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">추가</button>
+                <button id="delete-btn" type="button" class="mr-2 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">삭제</button>
+            </div>
+        </div>
+        <div>
+            <!-- 버튼 -->
+        </div>
+        <div id="jqtree" class="min-w-0 text- font-semibold leading-6 text-gray-900 bg-white p-4"
+             data-url="/category/node"></div>
+        <div>
+        </div>
+    </div>
+    <script th:inline="javascript" type="text/javascript">
+        window.onload = function (){
+            document.getElementById("add-btn").addEventListener("click", createNewCategory);
+            document.getElementById("delete-btn").addEventListener("click", deleteCategory);
+
+        }
+
+        /* jqTree area */
+        let categoryNum = null;
+
+        // 트리 형성(on demand 방식)
+        let categoryTree = $('#jqtree');
+
+        // applyDynamicIndentation();
+
+        categoryTree.tree({
+            dragAndDrop: true
+        });
+
+        // 트리 요소 선택 시 발생하는 이벤트
+        categoryTree.on('tree.select', function (event) {
+            let selectedNode = event.node;
+            if (selectedNode) {
+                // 우선 모든 요소 색상 초기화
+                $('div.jqtree_common').css({
+                    'border-width': '1px',
+                    'border-style': 'solid',
+                    'border-color': '#2d3748'
+                });
+                categoryNum = selectedNode.id;
+                $('.jqtree_common')
+                $('.jqtree-selected').children('div').css('border-color', '#4F46E5')
+                                                     .css('border-width', '2px');
+                console.log(categoryNum);
+            } else {
+                // deselected 된 경우
+                $('div.jqtree_common').css({
+                    'border-width': '1px',
+                    'border-style': 'solid',
+                    'border-color': '#2d3748'
+                });
+            }
+        })
+
+        categoryTree.on('tree.deselect', function (event) {
+            categoryNum = 0;
+
+        });
+
+        categoryTree.on('tree.move', function (event) {
+            let movedNode = event.move_info.moved_node;
+            let targetNode = event.move_info.target_node;
+            let movedPosition = event.move_info.position;
+
+            // 새로운 부모 카테고리 ID 확인
+            let newParentCategoryId = targetNode ? targetNode.id : null;
+
+            // 서버에 전송할 데이터 준비
+            let requestData = {
+                movedCategoryId: movedNode.id,
+                targetCategoryId: targetNode.id,
+                movedPosition: movedPosition
+            };
+
+            console.log(JSON.stringify(requestData));
+
+            // AJAX를 사용하여 데이터를 서버로 전송
+            $.ajax({
+                type: 'PUT',
+                url: '/admin/category',
+                contentType: 'application/json',
+                data: JSON.stringify(requestData),
+                success: function (response) {
+                    // 성공 시 처리 (필요한 경우)
+                },
+                error: function (error) {
+                    // 오류 시 처리 (필요한 경우)
+                }
+            });
+        });
+
+        categoryTree.on('tree.dnd', function (event) {
+            let targetNode = event.move_info.target_node;
+
+            // 모든 노드의 밑줄 스타일 제거
+            categoryTree.find('li').css('border-bottom', 'none');
+
+            // 드래그 중인 노드의 위치에 밑줄 스타일 추가
+            if (targetNode) {
+                let targetElement = $(targetNode.element);
+                targetElement.css('border-bottom', '2px solid #4F46E5'); // Indigo-500 색상
+            }
+        });
+
+        categoryTree.on('tree.dndout', function (event) {
+            // 드롭 이벤트가 종료될 때 밑줄 스타일 제거
+            categoryTree.find('li').css('border-bottom', 'none');
+        });
+
+        async function createNewCategory(event){
+
+            let categoryName = document.getElementById("category-name").value;
+
+            let data = {
+                categoryName: categoryName
+            }
+
+            // ajax 통해서 새로운 category 생성
+            try{
+                let response = await fetch("/admin/category",{
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data)
+                })
+
+                // 재호출
+                categoryTree.tree('reload');
+
+
+            let result = await response;
+            console.log(response);
+            } catch (error){
+                console.log(error)
+            }
+        }
+
+        function deleteCategory(event){
+
+            let data = {
+                "categoryNum": categoryNum
+            }
+
+            Swal.fire({
+                title: '정말 삭제하시겠습니까?',
+                icon: 'warning',
+                html: `<div style="white-space: pre-line;">만약 하위 카테고리가 있다면 함께 삭제됩니다.
+                정말 삭제하시겠습니까?</div>`,
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '네',
+                cancelButtonText: '아니오',
+                reverseButtons: true,
+
+            }).then( async (result) => {
+                if (result.isConfirmed) {
+                    try{
+                        let response = await fetch("/admin/category",{
+                            method: "DELETE",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(data)
+                        })
+
+                        // 재호출
+                        categoryTree.tree('reload');
+
+                        let result = await response;
+                        console.log(result.text());
+                    } catch (error){
+                        console.log(error)
+                    }
+                }
+            })
+
+
+        }
+
+        // function applyDynamicIndentation(node, level) {
+        //     // 부모 노드 중 가장 가까운 li 요소 찾기
+        //     let closestLi = $(node.element).closest('li');
+        //
+        //     // 가장 가까운 li 요소가 있다면
+        //     if (closestLi.length > 0) {
+        //         // aria-level에 따라 동적으로 들여쓰기 적용
+        //         let indentation = level * 10; // 10px 간격으로 조정 가능
+        //         closestLi.css('padding-left', indentation + 'px');
+        //     }
+        // }
+
+        // function applyDynamicIndentation() {
+        //     // 모든 노드에 대해 동적으로 들여쓰기 적용
+        //     $('.jqtree-element').each(function () {
+        //         let level = parseInt($(this).attr('aria-level'));
+        //         let indentation = level * 10; // 10px 간격으로 조정 가능
+        //         $(this).closest('li').css('padding-left', indentation + 'px');
+        //     });
+        // }
+
+        /* jq tree area end */
+
+    </script>
+
+</div>
+</html>
